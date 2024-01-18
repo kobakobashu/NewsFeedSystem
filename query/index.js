@@ -2,42 +2,64 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const axios = require("axios");
-
+const mongoose = require('mongoose');
+const Query = require('./models/query');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const posts = {};
-
-const handleEvent = (type, data) => {
+const handleEvent = async (type, data) => {
   if (type === "PostCreated") {
     const { id, title } = data;
 
-    posts[id] = { id, title, comments: [] };
+    const posts = new Query({
+      id,
+      title,
+      comments: []
+    });
+
+    await posts.save();
   }
 
   if (type === "CommentCreated") {
     const { id, content, postId, status } = data;
 
-    const post = posts[postId];
-    post.comments.push({ id, content, status });
+    const comment = {
+      id: id,
+      content: content,
+      status: status
+    };
+
+    try {
+      await Query.findOneAndUpdate(
+        { id: postId },
+        { $push: { comments: comment } },
+        { new: true }
+      )
+    } catch (err) {
+      console.error(err);
+    };
+
+    const posts = await Query.find({});
   }
 
   if (type === "CommentUpdated") {
     const { id, content, postId, status } = data;
-
-    const post = posts[postId];
-    const comment = post.comments.find((comment) => {
-      return comment.id === id;
-    });
-
-    comment.status = status;
-    comment.content = content;
+    try {
+      await Query.findOneAndUpdate(
+        { id: postId, 'comments.id': id },
+        { $set: { 'comments.$.status': status, 'comments.$.content': content } },
+        { new: true }
+      )
+    } catch (err) {
+      console.error(err);
+    };
   }
 };
 
-app.get('/posts', (req, res) => {
+app.get('/posts', async (req, res) => {
+  const posts = await Query.find({});
   res.send(posts);
 });
 
@@ -50,6 +72,12 @@ app.post('/events', (req, res) => {
 });
 
 app.listen(4002, async () => {
+  try {
+    await mongoose.connect('mongodb://posts-mongo-srv:27017/query');
+    console.log('Connected to mongo');
+  } catch (err) {
+    console.error(err);
+  }
   console.log('Listening on 4002');
   try {
     const res = await axios.get("http://event-bus-srv:4005/events");
