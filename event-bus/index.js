@@ -4,13 +4,25 @@ const axios = require("axios");
 
 const app = express();
 app.use(bodyParser.json());
+const mongoose = require('mongoose');
+const Events = require('./models/event-bus');
 
-const events = [];
+const start = async () => {
+  try {
+    await mongoose.connect('mongodb://event-bus-mongo-srv:27017/event-bus');
+    console.log('Connected to mongo');
+  } catch (err) {
+    console.error(err);
+  };
 
-app.post("/events", (req, res) => {
-  const event = req.body;
+  app.listen(4005, () => {
+    console.log("Listening on 4005");
+  });
+};
 
-  events.push(event);
+app.post("/events", async (req, res) => {
+  const event = new Events({ type: req.body.type, data: req.body.data });
+  await event.save();
 
   axios.post("http://posts-clusterip-srv:4000/events", event).catch((err) => {
     console.log(err.message);
@@ -27,10 +39,9 @@ app.post("/events", (req, res) => {
   res.send({ status: "OK" });
 });
 
-app.get("/events", (req, res) => {
+app.get("/events", async (req, res) => {
+  const events = await Events.find({});
   res.send(events);
 });
 
-app.listen(4005, () => {
-  console.log("Listening on 4005");
-});
+start();

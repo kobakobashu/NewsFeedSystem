@@ -31,6 +31,13 @@ spec:
                 name: comments-srv
                 port:
                   number: 4001
+          - path: /events
+            pathType: Prefix
+            backend:
+              service:
+                name: event-bus-srv
+                port:
+                  number: 4005
           - path: /?(.*)
             pathType: Prefix
             backend:
