@@ -8,7 +8,11 @@ const postsSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true
-  }
+  },
+  version: {
+    type: Number,
+    required: true
+  },
 }, {
   toJSON: {
     transform: function (doc, ret) {

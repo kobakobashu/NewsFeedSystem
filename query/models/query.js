@@ -33,6 +33,10 @@ const querySchema = new mongoose.Schema({
     required: true,
   },
   comments: [commentSchema],
+  version: {
+    type: Number,
+    required: true,
+  },
 }, {
   toJSON: {
     transform: function (doc, ret) {

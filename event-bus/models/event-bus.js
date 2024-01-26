@@ -27,6 +27,10 @@ const eventsSchema = new mongoose.Schema({
       type: String,
       required: false,
     },  
+    version: {
+      type: Number,
+      required: false,
+    },  
   },
 }, {
   toJSON: {

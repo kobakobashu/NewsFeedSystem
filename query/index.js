@@ -11,25 +11,35 @@ app.use(cors());
 
 const handleEvent = async (type, data) => {
   if (type === "PostCreated") {
-    const { id, title } = data;
+    const { id, title, version } = data;
 
     const posts = new Query({
       id,
       title,
-      comments: []
+      comments: [],
+      version
     });
 
     await posts.save();
   }
 
   if (type === "PostUpdated") {
-    const { id, title } = data;
+    const { id, title, version } = data;
+
     try {
-      await Query.findOneAndUpdate(
-        { id: id },
-        { title: title },
+      const updatedPost = await Query.findOneAndUpdate(
+        { id: id, version: version - 1 },
+        { title: title, version: version },
         { new: true }
-      )
+      );
+      if (!updatedPost) {
+        setTimeout(async () => {
+          await axios.post('http://event-bus-srv:4005/events', {
+            type: 'PostUpdated',
+            data: data
+          });
+        }, 5000);
+      }
     } catch (err) {
       console.error(err);
     };

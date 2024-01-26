@@ -30,14 +30,15 @@ app.get('/posts/create', async (req, res) => {
 app.post('/posts/create', async (req, res) => {
   const { title } = req.body;
 
-  const posts = new Posts({ title });
+  const posts = new Posts({ title: title, version: 0 });
   await posts.save();
 
   await axios.post('http://event-bus-srv:4005/events', {
     type: 'PostCreated',
     data: {
       id: posts.toJSON().id,
-      title: posts.toJSON().title
+      title: posts.toJSON().title,
+      version: posts.toJSON().version
     }
   });
 
@@ -49,13 +50,15 @@ app.put('/posts/modify/:id', async (req, res) => {
 
   const post = await Posts.findById(req.params.id);
   post.title = title;
+  post.version = post.version + 1
   await post.save();
 
   await axios.post('http://event-bus-srv:4005/events', {
     type: 'PostUpdated',
     data: {
       id: post.toJSON().id,
-      title: post.toJSON().title
+      title: post.toJSON().title,
+      version: post.toJSON().version
     }
   });
 
