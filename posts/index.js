@@ -62,6 +62,19 @@ app.put('/posts/modify/:id', async (req, res) => {
   res.status(201).send({ post });
 });
 
+app.delete('/posts/delete/:id', async (req, res) => {
+  await Posts.deleteOne({_id: req.params.id});
+
+  await axios.post('http://event-bus-srv:4005/events', {
+    type: 'PostDeleted',
+    data: {
+      id: req.params.id,
+    }
+  });
+
+  res.status(201).send({});
+});
+
 app.post("/events", (req, res) => {
   console.log("Received Event", req.body.type);
 

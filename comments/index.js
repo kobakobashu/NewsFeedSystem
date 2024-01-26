@@ -25,7 +25,7 @@ const start = async () => {
 app.post('/posts/:id/comments', async (req, res) => {
   const { content } = req.body;
 
-  const comment = new Comments({ content, status: 'pending' });
+  const comment = new Comments({ content, status: 'pending', postId: req.params.id });
   await comment.save();
 
   await axios.post('http://event-bus-srv:4005/events', {
@@ -63,6 +63,11 @@ app.post("/events", async (req, res) => {
         content,
       },
     });
+  }
+
+  if (type === "PostDeleted") {
+    const { id } = data;
+    await Comments.deleteMany({ postId: id })
   }
 
   res.send({});

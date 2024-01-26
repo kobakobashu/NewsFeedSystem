@@ -45,6 +45,11 @@ const PostList = () => {
     fetchPosts();
   };
 
+  const handleDeleteClick = async (postId) => {
+    await axios.delete(`http://posts.com/posts/delete/${postId}`);
+    fetchPosts();
+  };
+
   const renderedPosts = Object.values(posts).map((post) => {
     return (
       <div
@@ -75,6 +80,7 @@ const PostList = () => {
             <div>
               <h3>{post.title}</h3>
               <button className="btn btn-primary" onClick={() => handleEditClick(post.id)}>Edit</button>
+              <button className="btn btn-danger" onClick={() => handleDeleteClick(post.id)}>Delete</button>
             </div>
           )}
           <CommentList comments={post.comments} />

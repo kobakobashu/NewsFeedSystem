@@ -9,6 +9,10 @@ const commentsSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  postId: {
+    type: String,
+    required: true
+  },
   status: {
     type: String,
     enum: ['approved', 'pending', 'rejected'],

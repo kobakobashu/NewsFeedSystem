@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const eventsSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['PostCreated', 'PostUpdated', 'CommentCreated', 'CommentModerated', 'CommentUpdated'],
+    enum: ['PostCreated', 'PostUpdated', 'PostDeleted', 'CommentCreated', 'CommentModerated', 'CommentUpdated'],
     required: true
   },
   data: {

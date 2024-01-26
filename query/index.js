@@ -35,6 +35,11 @@ const handleEvent = async (type, data) => {
     };
   }
 
+  if (type === "PostDeleted") {
+    const { id } = data;
+    await Query.deleteOne({id: id});
+  }
+
   if (type === "CommentCreated") {
     const { id, content, postId, status } = data;
 
@@ -53,8 +58,6 @@ const handleEvent = async (type, data) => {
     } catch (err) {
       console.error(err);
     };
-
-    const posts = await Query.find({});
   }
 
   if (type === "CommentUpdated") {
