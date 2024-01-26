@@ -44,6 +44,24 @@ app.post('/posts/create', async (req, res) => {
   res.status(201).send({ posts });
 });
 
+app.put('/posts/modify/:id', async (req, res) => {
+  const { title } = req.body;
+
+  const post = await Posts.findById(req.params.id);
+  post.title = title;
+  await post.save();
+
+  await axios.post('http://event-bus-srv:4005/events', {
+    type: 'PostUpdated',
+    data: {
+      id: post.toJSON().id,
+      title: post.toJSON().title
+    }
+  });
+
+  res.status(201).send({ post });
+});
+
 app.post("/events", (req, res) => {
   console.log("Received Event", req.body.type);
 

@@ -22,6 +22,19 @@ const handleEvent = async (type, data) => {
     await posts.save();
   }
 
+  if (type === "PostUpdated") {
+    const { id, title } = data;
+    try {
+      await Query.findOneAndUpdate(
+        { id: id },
+        { title: title },
+        { new: true }
+      )
+    } catch (err) {
+      console.error(err);
+    };
+  }
+
   if (type === "CommentCreated") {
     const { id, content, postId, status } = data;
 
@@ -60,7 +73,11 @@ const handleEvent = async (type, data) => {
 
 app.get('/posts', async (req, res) => {
   const posts = await Query.find({});
-  res.send(posts);
+  const postsObject = {};
+  posts.forEach((post) => {
+    postsObject[post.id] = post;
+  });
+  res.send(postsObject);
 });
 
 app.post('/events', (req, res) => {

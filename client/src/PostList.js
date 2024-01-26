@@ -5,6 +5,8 @@ import CommentList from "./CommentList";
 
 const PostList = () => {
   const [posts, setPosts] = useState({});
+  const [editMode, setEditMode] = useState({});
+  const [editedTitles, setEditedTitles] = useState({});
 
   const fetchPosts = async () => {
     const res = await axios.get("http://posts.com/posts");
@@ -16,6 +18,33 @@ const PostList = () => {
     fetchPosts();
   }, []);
 
+  const handleEditClick = (postId) => {
+    setEditMode((prevState) => ({
+      ...prevState,
+      [postId]: true,
+    }));
+
+    setEditedTitles((prevState) => ({
+      ...prevState,
+      [postId]: posts[postId].title,
+    }));
+  };
+
+  const handleCompleteClick = async (postId, event) => {
+    event.preventDefault();
+
+    await axios.put(`http://posts.com/posts/modify/${postId}`, {
+      title: editedTitles[postId],
+    });
+
+    setEditMode((prevState) => ({
+      ...prevState,
+      [postId]: false,
+    }));
+
+    fetchPosts();
+  };
+
   const renderedPosts = Object.values(posts).map((post) => {
     return (
       <div
@@ -24,7 +53,30 @@ const PostList = () => {
         key={post.id}
       >
         <div className="card-body">
-          <h3>{post.title}</h3>
+          {editMode[post.id] ? (
+            <div>
+              <form onSubmit={(e) => handleCompleteClick(post.id, e)}>
+                <input
+                  type="text"
+                  value={editedTitles[post.id]}
+                  className="form-control"
+                  onChange={(e) => {
+                    const newTitle = e.target.value;
+                    setEditedTitles((prevState) => ({
+                      ...prevState,
+                      [post.id]: newTitle,
+                    }));
+                  }}
+                />
+                <button className="btn btn-primary" type="submit">Rename</button>
+              </form>
+            </div>
+          ) : (
+            <div>
+              <h3>{post.title}</h3>
+              <button className="btn btn-primary" onClick={() => handleEditClick(post.id)}>Edit</button>
+            </div>
+          )}
           <CommentList comments={post.comments} />
           <CommentCreate postId={post.id} />
         </div>
